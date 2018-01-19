@@ -1,4 +1,4 @@
-# Promgramming Problems
+# HTML5 Games
 
 HTML 5 game development collection, will use the CreateJs game engine and cocosJS game engine
 
