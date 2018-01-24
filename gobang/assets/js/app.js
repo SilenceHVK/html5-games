@@ -1,42 +1,66 @@
-var Chess = (function () {
+(function () {
     'use strict';
+    let chess = {};
 
     /**
-     * 棋盘对象
-     * @param {String} id 
+     * 绘制棋盘
+     * @param {Object} vars 
      */
-    var chess = function (id) {
-        this.canvas = document.querySelector(id);
-        this.width = this.canvas.offsetWidth;
-        this.height = this.canvas.offsetHeight;
-        if (this.canvas) {
-            this.context = this.canvas.getContext('2d');
+    let drawChessBorad = function (vars, padding = 15, interval = 30) {
+        if (vars) {
+            // 根据棋盘大小绘制棋盘网格
+            let spliteNum = Math.round((vars.chessSize - (padding * 2)) / interval) + 1;
+            for (let i = 0; i < spliteNum; i++) {
+                vars.context.beginPath();
+                vars.context.strokeStyle = '#bfbfbf';
+                // 绘制 X 轴网格
+                vars.context.moveTo(padding + i * interval, padding);
+                vars.context.lineTo(padding + i * interval, vars.chessSize - padding);
+                vars.context.stroke();
+                // 绘制 Y 轴网格
+                vars.context.moveTo(padding, padding + i * interval);
+                vars.context.lineTo(vars.chessSize - padding, padding + i * interval);
+                vars.context.stroke();
+                vars.context.closePath();
+            }
         }
-        return this;
+    }
+
+    /**
+     * 初始化游戏界面
+     */
+    chess.init = function () {
+        let vars = {};
+        // 创建 Canvas 元素 并添加至 body 中
+        vars.canvas = document.createElement('canvas');
+        document.body.appendChild(vars.canvas);
+        // 获取 Canvas 上下文对象
+        vars.context = vars.canvas.getContext('2d');
+        let width = window.innerWidth - 15;
+        let height = window.innerHeight - 15;
+        vars.chessSize = width > height ? height : width;
+        vars.canvas.width = vars.canvas.height = vars.chessSize;
+        // 绘制棋盘
+        drawChessBorad(vars);
+        //绑定棋盘事件
+        this.bindingEvent(vars);
     };
 
     /**
-     * 绘制棋盘方法
-     * @param {String} color 
-     * @param {Number} lineWidth 
-     * @param {Number} blank 
+     * 绑定棋盘事件
+     * @param {Object} vars 
      */
-    chess.prototype.drawChess = function (color = '#bfbfbf', lineWidth = 5, blank = 30) {
-        if (this.context) {
-           
-            this.context.beginPath();
-            this.context.moveTo(0, 0);
-            this.context.lineTo(0, this.height);
-            this.context.stroke();
-            this.context.beginPath();
-            this.context.moveTo(15, 0);
-            this.context.lineTo(15, this.height);
-            this.context.stroke();
+    chess.bindingEvent = function (vars) {
+        if (vars) {
+            vars.canvas.addEventListener('click', (e) => {
+                alert('点击了棋盘');
+            }, false);
         }
     };
-    return chess;
+
+    window.chess = chess;
 })();
 
 window.onload = function () {
-    new Chess('#chess').drawChess();
+    window.chess.init();
 }
