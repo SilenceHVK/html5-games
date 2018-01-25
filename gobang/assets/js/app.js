@@ -24,6 +24,19 @@
                 vars.context.closePath();
             }
         }
+    };
+
+    let drawChess = function (vars) {
+        if (vars) {
+            vars.context.beginPath();
+            let gradient = vars.context.createRadialGradient(100, 100, 20, 100, 100, 10);
+            gradient.addColorStop(0, '#0A0A0A');
+            gradient.addColorStop(1, '#626366');
+            vars.context.fillStyle = gradient;
+            vars.context.arc(100, 100, 50, 0, 2 * Math.PI);
+            vars.context.closePath();
+            vars.context.fill();
+        }
     }
 
     /**
@@ -42,6 +55,8 @@
         vars.canvas.width = vars.canvas.height = vars.chessSize;
         // 绘制棋盘
         drawChessBorad(vars);
+        // 绘制棋子
+        drawChess(vars);
         //绑定棋盘事件
         this.bindingEvent(vars);
     };
