@@ -83,13 +83,13 @@
             x = padding + x * interval;
             y = padding + y * interval;
             vars.context.beginPath();
-            let gradient = vars.context.createRadialGradient(x, y, 5, x, y, 2);
+            let gradient = vars.context.createRadialGradient(x + 2, y - 2, 13, x + 2, y - 2, 0);
             if (active) {
-                gradient.addColorStop(0, '#0A0A0A');
-                gradient.addColorStop(1, '#626366');
+                gradient.addColorStop(0, '#0a0a0a');
+                gradient.addColorStop(1, '#636766');
             } else {
-                gradient.addColorStop(0, '#F9F9F9');
-                gradient.addColorStop(1, '#626366');
+                gradient.addColorStop(0, '#d1d1d1');
+                gradient.addColorStop(1, '#f9f9f9');
             }
             vars.context.fillStyle = gradient;
             vars.context.arc(x, y, 13, 0, 2 * Math.PI);
@@ -142,6 +142,11 @@
                     drawChess(vars, x, y, vars.active, interval);
                     vars.chessBorad[x][y] = vars.active ? 1 : 2;
                     vars.active = !vars.active;
+                    for (let i = 0; i < vars.winCount; i++) {
+                        if (vars.wins[x][y][i]) {
+                            // console.log('---');
+                        }
+                    }
                 }
             }, false);
         }
