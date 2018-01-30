@@ -25,6 +25,57 @@
                 vars.context.stroke();
                 vars.context.closePath();
             }
+
+            // 初始化所有落子点坐标
+            for (let i = 0; i < spliteNum; i++) {
+                vars.chessBorad[i] = [];
+                vars.wins[i] = [];
+                for (let j = 0; j < spliteNum; j++) {
+                    vars.chessBorad[i][j] = 0;
+                    vars.wins[i][j] = [];
+                }
+            }
+
+            // 推断所有横向赢法坐标
+            for (let i = 0; i < spliteNum; i++) {
+                for (let j = 0; j < spliteNum - 4; j++) {
+                    for (let k = 0; k < 5; k++) {
+                        vars.wins[i][j + k][vars.winCount] = true;
+                    }
+                    vars.winCount++;
+                }
+            }
+
+            // 推断所有纵向赢法坐标
+            for (let i = 0; i < spliteNum; i++) {
+                for (let j = 0; j < spliteNum - 4; j++) {
+                    for (let k = 0; k < 5; k++) {
+                        vars.wins[j + k][i][vars.winCount] = true;
+                    }
+                    vars.winCount++;
+                }
+            }
+
+            // 推断所有斜向赢法坐标
+            for (let i = 0; i < spliteNum - 4; i++) {
+                for (let j = 0; j < spliteNum - 4; j++) {
+                    for (let k = 0; k < 5; k++) {
+                        vars.wins[i + k][j + k][vars.winCount] = true;
+                    }
+                    vars.winCount++;
+                }
+            }
+
+            // 推断所有反斜向赢法坐标
+            for (let i = 0; i < spliteNum; i++) {
+                drawChess(vars, i, 0, vars.active);
+                // for (let j = spliteNum - 4; j > 3; j--) {
+                //     for (let k = 0; k < 5; k++) {
+                //         vars.wins[j - k][i + k][vars.winCount] = true;
+                //     }
+                //     vars.winCount++;
+                // }
+            }
         }
     };
 
@@ -61,6 +112,12 @@
         vars.context = vars.canvas.getContext('2d');
         // 判断下棋方
         vars.active = false;
+        // 用于记录落子坐标
+        vars.chessBorad = [];
+        // 用于记录所有赢法坐标
+        vars.wins = [];
+        // 统计赢法总数
+        vars.winCount = 0;
         let width = window.innerWidth - 15;
         let height = window.innerHeight - 15;
         vars.chessSize = width > height ? height : width;
@@ -81,8 +138,12 @@
             vars.canvas.addEventListener('click', (e) => {
                 let x = Math.floor(e.offsetX / interval);
                 let y = Math.floor(e.offsetY / interval);
-                drawChess(vars, x, y, vars.active, interval);
-                vars.active = !vars.active;
+                // 判断该坐标是否已落子
+                if (vars.chessBorad[x][y] === 0) {
+                    drawChess(vars, x, y, vars.active, interval);
+                    vars.chessBorad[x][y] = vars.active ? 1 : 2;
+                    vars.active = !vars.active;
+                }
             }, false);
         }
     };
