@@ -67,14 +67,13 @@
             }
 
             // 推断所有反斜向赢法坐标
-            for (let i = 0; i < spliteNum; i++) {
-                drawChess(vars, i, 0, vars.active);
-                // for (let j = spliteNum - 4; j > 3; j--) {
-                //     for (let k = 0; k < 5; k++) {
-                //         vars.wins[j - k][i + k][vars.winCount] = true;
-                //     }
-                //     vars.winCount++;
-                // }
+            for (let i = 0; i < spliteNum - 4; i++) {
+                for (let j = spliteNum - 1; j > 3; j--) {
+                    for (let k = 0; k < 5; k++) {
+                        vars.wins[j - k][i + k][vars.winCount] = true;
+                    }
+                    vars.winCount++;
+                }
             }
         }
     };
