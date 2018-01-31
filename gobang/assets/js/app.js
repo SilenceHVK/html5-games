@@ -5,11 +5,14 @@
     /**
      * 绘制棋盘
      * @param {Object} vars 
+     * @param {Number} padding 
+     * @param {Number} interval 
      */
     let drawChessBorad = function (vars, padding = 15, interval = 30) {
         if (vars) {
             // 根据棋盘大小绘制棋盘网格
             let spliteNum = Math.round((vars.chessSize - (padding * 2)) / interval) + 1;
+            vars.spliteNum = spliteNum;
             for (let i = 0; i < spliteNum; i++) {
                 let x = padding + i * interval;
                 let y = padding + i * interval;
@@ -25,7 +28,6 @@
                 vars.context.stroke();
                 vars.context.closePath();
             }
-
             // 初始化所有落子点坐标
             for (let i = 0; i < spliteNum; i++) {
                 vars.chessBorad[i] = [];
@@ -35,55 +37,20 @@
                     vars.wins[i][j] = [];
                 }
             }
-
-            // 推断所有横向赢法坐标
-            for (let i = 0; i < spliteNum; i++) {
-                for (let j = 0; j < spliteNum - 4; j++) {
-                    for (let k = 0; k < 5; k++) {
-                        vars.wins[i][j + k][vars.winCount] = true;
-                    }
-                    vars.winCount++;
-                }
-            }
-
-            // 推断所有纵向赢法坐标
-            for (let i = 0; i < spliteNum; i++) {
-                for (let j = 0; j < spliteNum - 4; j++) {
-                    for (let k = 0; k < 5; k++) {
-                        vars.wins[j + k][i][vars.winCount] = true;
-                    }
-                    vars.winCount++;
-                }
-            }
-
-            // 推断所有斜向赢法坐标
-            for (let i = 0; i < spliteNum - 4; i++) {
-                for (let j = 0; j < spliteNum - 4; j++) {
-                    for (let k = 0; k < 5; k++) {
-                        vars.wins[i + k][j + k][vars.winCount] = true;
-                    }
-                    vars.winCount++;
-                }
-            }
-
-            // 推断所有反斜向赢法坐标
-            for (let i = 0; i < spliteNum - 4; i++) {
-                for (let j = spliteNum - 1; j > 3; j--) {
-                    for (let k = 0; k < 5; k++) {
-                        vars.wins[j - k][i + k][vars.winCount] = true;
-                    }
-                    vars.winCount++;
-                }
-            }
-
-            // 记录所有赢法
-            for (let i = 0; i < vars.winCount; i++) {
-                vars.computerWins[i] = 0;
-                vars.userWins[i] = 0;
-            }
+            // 推断所有赢法坐标
+            inferWins(vars);
         }
     };
 
+    /**
+     * 绘制棋子
+     * @param {Object} vars 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @param {Boolean} active 
+     * @param {Number} interval 
+     * @param {Number} padding 
+     */
     let drawChess = function (vars, x, y, active, interval = 30, padding = 15) {
         if (vars) {
             x = padding + x * interval;
@@ -103,7 +70,59 @@
             vars.context.fill();
             vars.context.stroke();
         }
-    }
+    };
+
+    /**
+     * 推断所有赢法坐标
+     * @param {Object} vars 
+     */
+    let inferWins = function (vars) {
+        // 推断所有横向赢法坐标
+        for (let i = 0; i < vars.spliteNum; i++) {
+            for (let j = 0; j < vars.spliteNum - 4; j++) {
+                for (let k = 0; k < 5; k++) {
+                    vars.wins[i][j + k][vars.winCount] = true;
+                }
+                vars.winCount++;
+            }
+        }
+
+        // 推断所有纵向赢法坐标
+        for (let i = 0; i < vars.spliteNum; i++) {
+            for (let j = 0; j < vars.spliteNum - 4; j++) {
+                for (let k = 0; k < 5; k++) {
+                    vars.wins[j + k][i][vars.winCount] = true;
+                }
+                vars.winCount++;
+            }
+        }
+
+        // 推断所有斜向赢法坐标
+        for (let i = 0; i < vars.spliteNum - 4; i++) {
+            for (let j = 0; j < vars.spliteNum - 4; j++) {
+                for (let k = 0; k < 5; k++) {
+                    vars.wins[i + k][j + k][vars.winCount] = true;
+                }
+                vars.winCount++;
+            }
+        }
+
+        // 推断所有反斜向赢法坐标
+        for (let i = 0; i < vars.spliteNum - 4; i++) {
+            for (let j = vars.spliteNum - 1; j > 3; j--) {
+                for (let k = 0; k < 5; k++) {
+                    vars.wins[j - k][i + k][vars.winCount] = true;
+                }
+                vars.winCount++;
+            }
+        }
+
+        // 记录所有赢法
+        for (let i = 0; i < vars.winCount; i++) {
+            vars.computerWins[i] = 0;
+            vars.userWins[i] = 0;
+        }
+    };
 
     /**
      * 初始化游戏界面
@@ -153,17 +172,106 @@
                 let y = Math.floor(e.offsetY / interval);
                 // 判断该坐标是否已落子
                 if (vars.chessBorad[x][y] === 0) {
-                    drawChess(vars, x, y, vars.active, interval);
-                    vars.chessBorad[x][y] = vars.active ? 1 : 2;
+                    chess.stepOne(vars, x, y, interval);
                     chess.judementWin(vars, x, y);
                     vars.active = !vars.active;
-                    chess.computerStepOne(vars);
+                    chess.computerStepOne(vars, interval);
                 }
             }, false);
         }
     };
 
-    chess.computerStepOne = function (vars) {
+    /**
+     * 落子函数
+     * @param {Object} vars 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @param {Number} interval 
+     */
+    chess.stepOne = function (vars, x, y, interval = 30) {
+        drawChess(vars, x, y, vars.active, interval);
+        vars.chessBorad[x][y] = vars.active ? 1 : 2;
+    };
+
+    chess.computerStepOne = function (vars, interval = 30) {
+        let userScore = [];
+        let computerScore = [];
+        let maxScore = 0;
+        // 初始化计算机落子坐标
+        let point = {
+            x: 0,
+            y: 0
+        };
+        // 循环落子点数组筛选未落子坐标
+        for (let i = 0; i < vars.chessBorad.length; i++) {
+            userScore[i] = [];
+            computerScore[i] = [];
+            for (let j = 0; j < vars.chessBorad.length; j++) {
+                userScore[i][j] = 0;
+                computerScore[i][j] = 0;
+                // 筛选未落子坐标
+                if (vars.chessBorad[i][j] === 0) {
+                    // 循环所有赢法
+                    for (let k = 0; k < vars.winCount; k++) {
+                        // 判断当前赢法存在
+                        if (vars.wins[i][j][k]) {
+                            // 判断用户落子赢法分数
+                            if (vars.userWins[k] === 1) {
+                                userScore[i][j] += 100;
+                            } else if (vars.userWins[k] === 2) {
+                                userScore[i][j] += 1000;
+                            } else if (vars.userWins[k] === 3) {
+                                userScore[i][j] += 2000;
+                            } else if (vars.userWins[k] === 4) {
+                                userScore[i][j] += 22000;
+                            }
+
+                            // 判断计算机落子赢法分数
+                            if (vars.computerWins[k] === 1) {
+                                computerScore[i][j] += 200;
+                            } else if (vars.computerWins[k] === 2) {
+                                computerScore[i][j] += 2000;
+                            } else if (vars.computerWins[k] === 3) {
+                                computerScore[i][j] += 2200;
+                            } else if (vars.computerWins[k] === 4) {
+                                computerScore[i][j] += 25000;
+                            }
+                        }
+                    }
+                    // 根据每个坐标得分 推算有利坐标
+                    if (userScore[i][j] > maxScore) {
+                        maxScore = userScore[i][j];
+                        point = {
+                            x: i,
+                            y: j
+                        };
+                    } else if (userScore[i][j] === maxScore) {
+                        if (computerScore[i][j] > computerScore[i][j]) {
+                            point = {
+                                x: i,
+                                y: j
+                            };
+                        }
+                    }
+                    if (computerScore[i][j] > maxScore) {
+                        maxScore = computerScore[i][j];
+                        point = {
+                            x: i,
+                            y: j
+                        };
+                    } else if (computerScore[i][j] === maxScore) {
+                        if (userScore[i][j] > userScore[i][j]) {
+                            point = {
+                                x: i,
+                                y: j
+                            };
+                        }
+                    }
+                }
+            }
+        }
+        chess.stepOne(vars, point.x, point.y, interval);
+        chess.judementWin(vars, point.x, point.y);
         vars.active = !vars.active;
     };
 
@@ -180,6 +288,7 @@
                     vars.userWins[index]++;
                     vars.computerWins[index] = 6;
                     if (vars.userWins[index] === 5) {
+                        alert('黑子获胜');
                         vars.gameOver = true;
                     }
                 }
@@ -188,6 +297,7 @@
                     vars.computerWins[index]++;
                     vars.userWins[index] = 6;
                     if (vars.computerWins[index] === 5) {
+                        alert('白子获胜');
                         vars.gameOver = true;
                     }
                 }
@@ -202,7 +312,6 @@
     chess.tooltip = function (msg) {
 
     };
-
     window.chess = chess;
 })();
 
