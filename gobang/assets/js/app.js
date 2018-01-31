@@ -127,7 +127,6 @@
         vars.userWins = [];
         // 记录游戏是否结束
         vars.gameOver = false;
-
         let width = window.innerWidth - 15;
         let height = window.innerHeight - 15;
         vars.chessSize = width > height ? height : width;
@@ -149,41 +148,50 @@
                 // 判断游戏是否结束
                 if (vars.gameOver) return;
                 // 判断是否为用户下棋
-                // if (!vars.active) return;
+                if (!vars.active) return;
                 let x = Math.floor(e.offsetX / interval);
                 let y = Math.floor(e.offsetY / interval);
                 // 判断该坐标是否已落子
                 if (vars.chessBorad[x][y] === 0) {
                     drawChess(vars, x, y, vars.active, interval);
                     vars.chessBorad[x][y] = vars.active ? 1 : 2;
-                    if (vars.active) {
-                        for (let index = 0; index < vars.winCount; index++) {
-                            if (vars.wins[x][y][index]) {
-                                vars.userWins[index]++;
-                                vars.computerWins[index] = 6;
-                                if (vars.userWins[index] === 5) {
-                                    vars.gameOver = true;
-                                }
-                            }
-                        }
-                    }
+                    chess.judementWin(vars, x, y);
                     vars.active = !vars.active;
+                    chess.computerStepOne(vars);
                 }
             }, false);
         }
     };
 
     chess.computerStepOne = function (vars) {
-
+        vars.active = !vars.active;
     };
 
     /**
      * 判断赢法
      * @param {Object} vars 
      */
-    chess.judementWin = function (vars) {
+    chess.judementWin = function (vars, x, y) {
         for (let index = 0; index < vars.winCount; index++) {
-
+            // 判断落子点是否
+            if (vars.wins[x][y][index]) {
+                // 统计用户落子后赢法数据
+                if (vars.active) {
+                    vars.userWins[index]++;
+                    vars.computerWins[index] = 6;
+                    if (vars.userWins[index] === 5) {
+                        vars.gameOver = true;
+                    }
+                }
+                // 统计计算机落子后赢法数据
+                else {
+                    vars.computerWins[index]++;
+                    vars.userWins[index] = 6;
+                    if (vars.computerWins[index] === 5) {
+                        vars.gameOver = true;
+                    }
+                }
+            }
         }
     };
 
@@ -192,7 +200,7 @@
      * @param {String} msg 
      */
     chess.tooltip = function (msg) {
-        
+
     };
 
     window.chess = chess;
