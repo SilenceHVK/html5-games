@@ -75,6 +75,12 @@
                     vars.winCount++;
                 }
             }
+
+            // 记录所有赢法
+            for (let i = 0; i < vars.winCount; i++) {
+                vars.computerWins[i] = 0;
+                vars.userWins[i] = 0;
+            }
         }
     };
 
@@ -117,6 +123,8 @@
         vars.wins = [];
         // 统计赢法总数
         vars.winCount = 0;
+        vars.computerWins = [];
+        vars.userWins = [];
         let width = window.innerWidth - 15;
         let height = window.innerHeight - 15;
         vars.chessSize = width > height ? height : width;
@@ -142,11 +150,6 @@
                     drawChess(vars, x, y, vars.active, interval);
                     vars.chessBorad[x][y] = vars.active ? 1 : 2;
                     vars.active = !vars.active;
-                    for (let i = 0; i < vars.winCount; i++) {
-                        if (vars.wins[x][y][i]) {
-                            // console.log('---');
-                        }
-                    }
                 }
             }, false);
         }
