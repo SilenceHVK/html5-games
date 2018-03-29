@@ -2,7 +2,6 @@
 	box-sizing: border-box;
 	-moz-box-sizing:border-box; /* Firefox */
 	-webkit-box-sizing:border-box; /* Safari */
-	/*元素指定的任何内边距和边框都将在已设定的宽度和高度内进行绘制。*/
 }
 html,body,div{
 	margin:0;
@@ -66,7 +65,6 @@ html,body,div{
     -webkit-filter: none;
     filter: none;
 }
-
 .btn-start:hover{
 	background-image: -webkit-linear-gradient(#2f7d2f, #379337 40%, #3a9a3a);
     background-image: -o-linear-gradient(#2f7d2f, #379337 40%, #3a9a3a);
@@ -77,7 +75,6 @@ html,body,div{
     -webkit-filter: none;
     filter: none;
 }
-
 .btn-set{
 	color: #fff;
 	background-image: -webkit-linear-gradient(#74cae3, #5bc0de 60%, #4ab9db);
@@ -98,4 +95,54 @@ html,body,div{
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff20829f', endColorstr='#ff279dc1', GradientType=0);
     -webkit-filter: none;
     filter: none;
+}
+
+/* 游戏主界面 */
+div.game-main-panel{
+    position: absolute;
+    left: 100px;
+    top: 0;
+    width: 390px;
+    height: 600px;
+    border: 1px solid green;
+}
+/* left panel */
+.timer-panel,.help-panel,.level-panel,.next-panel,.set-panel,.scroe-panel,.high-scroe-panel{
+    position: absolute;
+    width: 100px;
+}
+/* right panel */
+.timer-panel,.help-panel,.level-panel{
+    left: 0;
+}
+.next-panel,.set-panel,.scroe-panel,.high-scroe-panel{
+    right: 0;
+}
+.timer-panel,.level-panel,.next-panel,.scroe-panel,.high-scroe-panel{
+    height: 100px;
+    border-bottom: 1px solid green;
+}
+.help-panel,.set-panel{
+    top: 150px;
+}
+.level-panel,.high-scroe-panel{
+    bottom: 0;
+}
+.scroe-panel{
+    bottom: 120px;
+}
+.panel-header{
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    font-size: 18px;
+    color: #fff;
+    background: lightsalmon;
+}
+.panel-body{
+    text-align: center;
+    line-height: 70px;
+}
+.help-panel .panel-body{
+    line-height: normal;
 }
