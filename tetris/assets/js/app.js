@@ -22,8 +22,10 @@
     }
 
     function _init() {
+        // 开始游戏
         $('#btn-start').on('click', function () {
-            alert('开始游戏');
+            $('.start-container').css('display', 'none');
+            $('.game-container').css('display', 'block');
         });
     };
 
