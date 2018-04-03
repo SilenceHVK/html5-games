@@ -110,7 +110,8 @@ div.game-main-panel{
     width: 390px;
 	height: 600px;
 	border-left: 1px solid rgba(0,0,0,0.6);
-	border-right:  1px solid rgba(0,0,0,0.6);
+    border-right:  1px solid rgba(0,0,0,0.6);
+    box-sizing: content-box;
 }
 /* left panel */
 .timer-panel,.help-panel,.level-panel,.next-panel,.set-panel,.scroe-panel,.high-scroe-panel{
