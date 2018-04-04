@@ -116,7 +116,7 @@
         }
         const sprite = tetris.imageResource.get('blocks');  // 获取方块图片资源ååå
         canvas.context.beginPath();
-        canvas.context.drawImage(sprite,block.originalSize, 0, block.originalSize, block.originalSize, 0, 0, block.size, block.size);
+        canvas.context.drawImage(sprite, block.originalSize, 0, block.originalSize, block.originalSize, x * block.size, y * block.size, block.size, block.size);
     };
 
     // 俄罗斯方框类
@@ -138,7 +138,19 @@
         const canvas = $.canvas(canvasID, this.cols * this.borderSize, this.rows * this.borderSize);
         if (canvas.context) {
             _drawGameGrid(canvas);
-            _drawBlcoks(canvas);
+            const layout = [
+                [0, 1, 1],
+                [0, 0, 1],
+                [0, 0, 1]
+            ];
+            for (let i = 0; i < layout.length; i++) {
+                const item = layout[i];
+                for (let j = 0; j < item.length; j++) {
+                    if (layout[i][j] === 1 && tetris.borderList[i][j] === 0) {
+                        _drawBlcoks(canvas, i, j);
+                    }
+                }
+            }
         }
     };
 
