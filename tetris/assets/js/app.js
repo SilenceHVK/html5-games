@@ -114,21 +114,9 @@
             size: 30,
             originalSize: 32,
         }
-        const sprite = tetris.imageResource.get('blocks')
+        const sprite = tetris.imageResource.get('blocks');  // 获取方块图片资源ååå
         canvas.context.beginPath();
-
-        /**
-         * canvas 绘制图片方法
-         * 第一个参数为 图片对象 Image
-         * offsetX 图片剪切 X 轴坐标
-         * offsetY 图片剪切 Y 轴坐标
-         * width 图片宽度
-         * height 图片高度
-         * dsX 图片位于 canvas X 轴坐标
-         * dsY 图片位于 canvas Y 轴坐标
-         */
-        canvas.context.drawImage(sprite, )
-        canvas.context.drawImage(sprite, 0 * block.originalSize, 0, block.originalSize, block.originalSize, 30, 30, block.size, block.size);
+        canvas.context.drawImage(sprite,block.originalSize, 0, block.originalSize, block.originalSize, 0, 0, block.size, block.size);
     };
 
     // 俄罗斯方框类
