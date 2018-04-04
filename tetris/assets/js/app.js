@@ -58,6 +58,40 @@
             image.src = path;
         });
     };
+
+    /**
+     * 根据键盘按下键获取指令
+     */
+    $.getDirection = function (event) {
+        var keyCode = event.which || event.keyCode;
+        switch (keyCode) {
+            case 1:
+            case 38:
+            case 269: //up
+                return 'up';
+                break;
+            case 2:
+            case 40:
+            case 270:
+                return 'down';
+                break;
+            case 3:
+            case 37:
+            case 271:
+                return 'left';
+                break;
+            case 4:
+            case 39:
+            case 272:
+                return 'right';
+                break;
+            case 339: //exit
+            case 240: //back
+                return 'back';
+                break;
+        }
+    };
+
     window.$ = $;
 
 })(document, window);
@@ -113,10 +147,29 @@
         const block = {
             size: 30,
             originalSize: 32,
+            // 俄罗斯俄罗斯方块所有形状
+            shaps: [
+                [
+                    [1, 1]
+                    [1, 1]
+                ],
+                [
+                    [1, 1, 1]
+                    [0, 1, 0]
+                ],
+                [
+                    [1, 1, 0]
+                    [0, 1, 1]
+                ]
+            ]
         }
-        const sprite = tetris.imageResource.get('blocks');  // 获取方块图片资源ååå
+        // 随机方块的样式
+        const blockStyle = Math.floor((Math.random() * 7));
+        const sprite = tetris.imageResource.get('blocks');  // 获取方块图片资源
+
         canvas.context.beginPath();
-        canvas.context.drawImage(sprite, block.originalSize, 0, block.originalSize, block.originalSize, x * block.size, y * block.size, block.size, block.size);
+        canvas.context.drawImage(sprite, blockStyle * block.originalSize, 0, block.originalSize, block.originalSize,
+            x * block.size, y * block.size, block.size, block.size);
     };
 
     // 俄罗斯方框类
@@ -130,6 +183,15 @@
     };
 
     /**
+     * 移动方块图形
+     * @param {*} event 
+     */
+    tetris.moveShap = function (event) {
+
+        console.log($.getDirection(event));
+    };
+
+    /**
      * 开始游戏
      * @param {*} canvasID 
      */
@@ -138,20 +200,9 @@
         const canvas = $.canvas(canvasID, this.cols * this.borderSize, this.rows * this.borderSize);
         if (canvas.context) {
             _drawGameGrid(canvas);
-            const layout = [
-                [0, 1, 1],
-                [0, 0, 1],
-                [0, 0, 1]
-            ];
-            for (let i = 0; i < layout.length; i++) {
-                const item = layout[i];
-                for (let j = 0; j < item.length; j++) {
-                    if (layout[i][j] === 1 && tetris.borderList[i][j] === 0) {
-                        _drawBlcoks(canvas, i, j);
-                    }
-                }
-            }
+            _drawBlcoks(canvas, 0, 0);
         }
+        document.addEventListener('keydown', this.moveShap, false);
     };
 
     // 将俄罗斯类暴露给全局对象 window
