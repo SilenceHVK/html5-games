@@ -1,6 +1,69 @@
 'use strict';
-(function (document, window) {
 
+// 工具类
+(function (document, window) {
+    // DomObject 类
+    const DomObject = function (dom) {
+        this.dom = dom;
+    }
+    // 返回 DomObject 的 dom 对象
+    DomObject.prototype.get = function () {
+        return this.dom;
+    }
+    // 事件注册
+    DomObject.prototype.on = function (eventName, eventHandler) { // 事件注册
+        this.get().addEventListener(eventName, eventHandler, false);
+    };
+    // css 样式动态更改
+    DomObject.prototype.css = function (styleKey, styleValue) {
+        this.get().style[styleKey] = styleValue;
+    };
+
+    // $ 选择器
+    const $ = function (selector, context) {
+        return new DomObject((context || document).querySelector(selector));
+    };
+
+    /**
+    * 定义实例一个 canvas 对象 的静态方法
+    * @param {String} canvasID 
+    * @param {Number} width
+    * @param {Number} height
+    */
+    $.canvas = function (canvasID, width, height) {
+        const newCanvas = {};
+        newCanvas.canvas = document.querySelector(canvasID);
+        if (newCanvas.canvas) {
+            // 设置 canvas 的宽度
+            newCanvas.width = newCanvas.canvas.width = width || window.innerWidth;
+            // 设置 canvas 的高度
+            newCanvas.height = newCanvas.canvas.height = height || window.innerHeight;
+            // 设置 canvas 的上下文
+            newCanvas.context = newCanvas.canvas.getContext('2d');
+        }
+        return newCanvas;
+    };
+
+    /**
+     * 加载图片静态方法
+     * @param {String} path
+     */
+    $.preloadImage = function (path) {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = function () {
+                resolve(image);
+            };
+            image.onerror = reject;
+            image.src = path;
+        });
+    };
+    window.$ = $;
+
+})(document, window);
+
+
+(function (document, window) {
     /**
     * 添加矩阵属性
     * @param {Number} m
@@ -18,26 +81,54 @@
         return mat;
     };
 
+    // 绘制游戏界面网格
+    const _drawGameGrid = function (canvas) {
+        canvas.context.beginPath();
+        canvas.context.strokeStyle = 'rgba(0,0,0,0.6)';
+        canvas.context.lineWidth = 0.5;
+        // 绘制纵向线段
+        for (let i = 0; i < tetris.cols; i++) {
+            canvas.context.moveTo(i * tetris.borderSize, 0);
+            canvas.context.lineTo(i * tetris.borderSize, canvas.height);
+        }
+        // 绘制横向线段
+        for (let i = 0; i < tetris.rows; i++) {
+            canvas.context.moveTo(0, i * tetris.borderSize);
+            canvas.context.lineTo(canvas.width, i * tetris.borderSize);
+        }
+        canvas.context.stroke();
+        // 填充界面坐标
+        tetris.borderList = tetris.borderList.matrix(tetris.rows, tetris.cols, 0);
+        // 缓存 canvas 数据
+        tetris.gridImageData = canvas.context.getImageData(0, 0, canvas.width, canvas.height);
+    };
 
-    // DomObject 类
-    const DomObject = function (dom) {
-        this.dom = dom;
-    }
-    // 返回 DomObject 的 dom 对象
-    DomObject.prototype.get = function () {
-        return this.dom;
-    }
-    // 事件注册
-    DomObject.prototype.on = function (eventName, eventHandler) { // 事件注册
-        this.get().addEventListener(eventName, eventHandler, false);
-    };
-    // css 样式动态更改
-    DomObject.prototype.css = function (styleKey, styleValue) {
-        this.get().style[styleKey] = styleValue;
-    };
-    // $ 选择器
-    const $ = function (selector, context) {
-        return new DomObject((context || document).querySelector(selector));
+    /**
+     * 绘制方块
+     * @param {*} canvas 
+     * @param {*} x 
+     * @param {*} y 
+     */
+    const _drawBlcoks = function (canvas, x, y) {
+        const block = {
+            size: 30,
+            originalSize: 32,
+        }
+        const sprite = tetris.imageResource.get('blocks')
+        canvas.context.beginPath();
+
+        /**
+         * canvas 绘制图片方法
+         * 第一个参数为 图片对象 Image
+         * offsetX 图片剪切 X 轴坐标
+         * offsetY 图片剪切 Y 轴坐标
+         * width 图片宽度
+         * height 图片高度
+         * dsX 图片位于 canvas X 轴坐标
+         * dsY 图片位于 canvas Y 轴坐标
+         */
+        canvas.context.drawImage(sprite, )
+        canvas.context.drawImage(sprite, 0 * block.originalSize, 0, block.originalSize, block.originalSize, 30, 30, block.size, block.size);
     };
 
     // 俄罗斯方框类
@@ -47,57 +138,24 @@
         cols: 13,   // 设置横向大小
         borderList: [], // 用于存储游戏界面中的坐标
         gridImageData: null, // 用于存储canvas 界面缓存
+        imageResource: new Map() // 图片资源
     };
 
-    // 设置 Canvas
-    tetris.canvas = function (canvasID, width, height) {
-        const newCanvas = {};
-        newCanvas.canvas = document.querySelector(canvasID);
-        if (newCanvas.canvas) {
-            // 设置 canvas 的宽度
-            newCanvas.width = newCanvas.canvas.width = width || window.innerWidth;
-            // 设置 canvas 的高度
-            newCanvas.height = newCanvas.canvas.height = height || window.innerHeight;
-            // 设置 canvas 的上下文
-            newCanvas.context = newCanvas.canvas.getContext('2d');
+    /**
+     * 开始游戏
+     * @param {*} canvasID 
+     */
+    tetris.startGame = async function (canvasID) {
+        this.imageResource.set('blocks', await $.preloadImage('assets/images/blocks.png'));
+        const canvas = $.canvas(canvasID, this.cols * this.borderSize, this.rows * this.borderSize);
+        if (canvas.context) {
+            _drawGameGrid(canvas);
+            _drawBlcoks(canvas);
         }
-        return newCanvas;
-    };
-
-    // 绘制游戏界面网格
-    tetris.drawGameGrid = function (canvasID) {
-        const gameMain = this.canvas(canvasID, this.cols * this.borderSize, this.rows * this.borderSize);
-        if (gameMain.context) {
-            gameMain.context.beginPath();
-            gameMain.context.strokeStyle = 'rgba(0,0,0,0.6)';
-            gameMain.context.lineWidth = 0.5;
-            // 绘制纵向线段
-            for (let i = 0; i < this.cols; i++) {
-                gameMain.context.moveTo(i * this.borderSize, 0);
-                gameMain.context.lineTo(i * this.borderSize, gameMain.height);
-            }
-            // 绘制横向线段
-            for (let i = 0; i < this.rows; i++) {
-                gameMain.context.moveTo(0, i * this.borderSize);
-                gameMain.context.lineTo(gameMain.width, i * this.borderSize);
-            }
-            gameMain.context.stroke();
-            // 填充界面坐标
-            this.borderList = this.borderList.matrix(this.rows, this.cols, 0);
-            // 缓存 canvas 数据
-            this.gridImageData = gameMain.context.getImageData(0, 0, gameMain.width, gameMain.height);
-        }
-    };
-
-    // 开始游戏
-    tetris.startGame = function (canvasID) {
-        this.drawGameGrid(canvasID);
     };
 
     // 将俄罗斯类暴露给全局对象 window
     window.tetris = tetris;
-    // 将选择器暴露给全局对象 window
-    window.$ = $;
 })(document, window);
 
 
