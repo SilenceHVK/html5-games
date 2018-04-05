@@ -143,30 +143,12 @@
      * @param {*} x 
      * @param {*} y 
      */
-    const _drawBlcoks = function (canvas, x, y) {
+    const _drawBlcoks = function (canvas, blockStyle, x, y) {
         const block = {
             size: 30,
-            originalSize: 32,
-            // 俄罗斯俄罗斯方块所有形状
-            shaps: [
-                [
-                    [1, 1]
-                    [1, 1]
-                ],
-                [
-                    [1, 1, 1]
-                    [0, 1, 0]
-                ],
-                [
-                    [1, 1, 0]
-                    [0, 1, 1]
-                ]
-            ]
+            originalSize: 32
         }
-        // 随机方块的样式
-        const blockStyle = Math.floor((Math.random() * 7));
         const sprite = tetris.imageResource.get('blocks');  // 获取方块图片资源
-
         canvas.context.beginPath();
         canvas.context.drawImage(sprite, blockStyle * block.originalSize, 0, block.originalSize, block.originalSize,
             x * block.size, y * block.size, block.size, block.size);
@@ -185,10 +167,34 @@
     /**
      * 移动方块图形
      * @param {*} event 
+     * @param {*} canvas
      */
-    tetris.moveShap = function (event) {
+    tetris.moveShap = function (event, canvas) {
+        // console.log($.getDirection(event));
+        tetris.drawShap(canvas, 0, 0);
+    };
 
-        console.log($.getDirection(event));
+    /**
+     * 绘制俄罗斯方块
+     * @param {*} canvas 
+     */
+    tetris.drawShap = function (canvas, x, y) {
+        const shaps = [
+            [[1, 1], [1, 1]],
+            [[1, 1, 1], [0, 1, 0]],
+            [[1, 1, 1, 1]],
+            [[0, 1, 1], [1, 1, 0]]
+        ]
+        // 随机方块的样式
+        const blockStyle = Math.floor((Math.random() * 7));
+        const shap = shaps[Math.floor(Math.random() * shaps.length)];
+        for (let i = 0; i < shap.length; i++) {
+            for (let j = 0; j < shap[i].length; j++) {
+                if (shap[i][j]) {
+                    _drawBlcoks(canvas, blockStyle, x + j, y + i);
+                }
+            }
+        }
     };
 
     /**
@@ -200,9 +206,8 @@
         const canvas = $.canvas(canvasID, this.cols * this.borderSize, this.rows * this.borderSize);
         if (canvas.context) {
             _drawGameGrid(canvas);
-            _drawBlcoks(canvas, 0, 0);
+            document.addEventListener('keydown', this.moveShap(event, canvas), false);
         }
-        document.addEventListener('keydown', this.moveShap, false);
     };
 
     // 将俄罗斯类暴露给全局对象 window
