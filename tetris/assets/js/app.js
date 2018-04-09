@@ -156,60 +156,129 @@
 
     // 俄罗斯方框类
     const tetris = {
+        canvas: null,
         borderSize: 30, // 设置块的大小
         rows: 20,   // 设置纵向大小  
         cols: 13,   // 设置横向大小
+        tickTimer: null, // tick 时间控件
+        tickInterval: 1000, // tick 间隔时间
         borderList: [], // 用于存储游戏界面中的坐标
         gridImageData: null, // 用于存储canvas 界面缓存
-        imageResource: new Map() // 图片资源
+        imageResource: new Map(), // 图片资源
+        curShap: { x: 0, y: 0, shap: [], blockStyle: 0 },    // 当前图形的属性
+        nextShap: { x: 0, y: 0, shap: [], blockStyle: 0 },    // 下一个图形的属性
+        shaps: [
+            [[1, 1], [1, 1]],
+            [[1, 1, 1], [0, 1, 0]],
+            [[1, 1, 1, 1]],
+            [[0, 1, 1], [1, 1, 0]]
+        ]                               // 定义方块会组合的图形数组
     };
 
     /**
      * 移动方块图形
      * @param {*} event 
-     * @param {*} canvas
      */
-    tetris.moveShap = function (event, canvas) {
-        // console.log($.getDirection(event));
-        tetris.drawShap(canvas, 0, 0);
+    tetris.moveShap = function (event) {
+        const direction = $.getDirection(event);
+        if (direction) {
+            if (direction === 'left' && tetris.curShap.x > 0) {
+                tetris.curShap.x -= 1;
+            } else if (direction === 'right' && tetris.curShap.x < tetris.cols - tetris.curShap.shap[0].length) {
+                tetris.curShap.x += 1;
+            } else if (direction === 'down' && tetris.curShap.y < tetris.rows - tetris.curShap.shap.length) {
+                tetris.curShap.y += 1;
+            }
+            tetris.refresh();
+            tetris.drawShap(tetris.curShap);
+            tetris.showNext();
+        }
     };
 
     /**
-     * 绘制俄罗斯方块
-     * @param {*} canvas 
+     * 生成随机图形
      */
-    tetris.drawShap = function (canvas, x, y) {
-        const shaps = [
-            [[1, 1], [1, 1]],
-            [[1, 1, 1], [0, 1, 0]],
-            [[1, 1, 1, 1]],
-            [[0, 1, 1], [1, 1, 0]]
-        ]
-        // 随机方块的样式
+    tetris.randomShap = function () {
+        // 随机图形
+        const shap = this.shaps[Math.floor(Math.random() * this.shaps.length)];
+        // 随机生成图形 x 坐标
+        const x = Math.floor(Math.random() * (this.cols - shap[0].length));
+        // 随机图形样式 
         const blockStyle = Math.floor((Math.random() * 7));
-        const shap = shaps[Math.floor(Math.random() * shaps.length)];
-        for (let i = 0; i < shap.length; i++) {
-            for (let j = 0; j < shap[i].length; j++) {
-                if (shap[i][j]) {
-                    _drawBlcoks(canvas, blockStyle, x + j, y + i);
+        return { x: x, y: 0, shap: shap, blockStyle: blockStyle };
+    };
+
+    /**
+     * 绘制图形
+     * @param {*} shap 
+     */
+    tetris.drawShap = function (theShap) {
+        for (let i = 0; i < theShap.shap.length; i++) {
+            for (let j = 0; j < theShap.shap[i].length; j++) {
+                if (theShap.shap[i][j]) {
+                    _drawBlcoks(this.canvas, theShap.blockStyle, theShap.x + j, theShap.y + i);
                 }
             }
         }
     };
 
     /**
-     * 开始游戏
-     * @param {*} canvasID 
+     * 刷新游戏界面
      */
-    tetris.startGame = async function (canvasID) {
-        this.imageResource.set('blocks', await $.preloadImage('assets/images/blocks.png'));
-        const canvas = $.canvas(canvasID, this.cols * this.borderSize, this.rows * this.borderSize);
-        if (canvas.context) {
-            _drawGameGrid(canvas);
-            document.addEventListener('keydown', this.moveShap(event, canvas), false);
+    tetris.refresh = function () {
+        this.canvas.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.canvas.context.putImageData(this.gridImageData, 0, 0);
+    };
+
+    /**
+     * 显示下一个方块图形
+     */
+    tetris.showNext = function () {
+        if (this.curShap.y >= this.rows - this.curShap.shap.length) {
+            // 清除计时器
+            window.clearInterval(this.tickTimer);
+            // console.log(this.canvas.context.getImageData(0, 0, this.canvas.width, this.canvas.height));
+            // this.gridImageData = this.canvas.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            this.curShap = this.nextShap;
+            // this.startGame();
         }
     };
 
+    /**
+     * 图形定时下落
+     */
+    tetris.tick = function () {
+        this.tickTimer = window.setInterval(() => {
+            this.curShap.y += 1;
+            tetris.refresh();
+            this.drawShap(this.curShap);
+            this.showNext();
+        }, this.tickInterval);
+    };
+
+    /**
+     * 开始游戏
+     */
+    tetris.startGame = function () {
+        this.nextShap = this.randomShap();
+        this.drawShap(this.curShap);
+        this.tick();
+    };
+
+    /**
+     * 初始化游戏界面
+     * @param {*} canvasID 
+     */
+    tetris.init = async function (canvasID) {
+        this.imageResource.set('blocks', await $.preloadImage('assets/images/blocks.png'));
+        this.canvas = $.canvas(canvasID, this.cols * this.borderSize, this.rows * this.borderSize);
+        if (this.canvas.context) {
+            _drawGameGrid(this.canvas);
+            this.curShap = this.randomShap();
+            document.addEventListener('keydown', this.moveShap, false);
+            this.startGame();
+        }
+    };
     // 将俄罗斯类暴露给全局对象 window
     window.tetris = tetris;
 })(document, window);
@@ -219,6 +288,6 @@ window.onload = function () {
     $('#btn-start').on('click', function () {
         $('.start-container').css('display', 'none');
         $('.game-container').css('display', 'block');
-        tetris.startGame('#c-game-main');
+        tetris.init('#c-game-main');
     });
 }
