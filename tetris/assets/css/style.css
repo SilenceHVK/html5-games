@@ -1,0 +1,56 @@
+*{
+	-moz-box-sizing:border-box; /* Firefox */
+	-webkit-box-sizing:border-box; /* Safari */
+	box-sizing: border-box;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	-moz-user-select: none;
+	user-select: none;
+}
+html,body,div{
+	margin:0;
+	padding:0;
+}
+
+/*游戏区块*/
+.game-container{
+    position: relative;
+	margin:50px auto;
+	width:600px;
+    height: 690px;
+    border: 1px solid rgba(0,0,0,0.6);
+	box-sizing: content-box;
+}
+/* 游戏主界面 */
+div.game-main-panel{
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 450px;
+	height: inherit;
+    border-right:  1px solid rgba(0,0,0,0.6);
+    box-sizing: content-box;
+}
+
+/* left panel */
+.next-panel{
+	position: absolute;
+	right: 0;
+	width: 150px;
+	height: 150px;
+	border-bottom: 1px solid rgba(0,0,0,0.6);
+}
+.panel-header{
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    font-size: 18px;
+    color: #c8c8c8;
+    background: #3e444c;
+}
+.panel-body{
+	text-align: center;
+	height: 120px;
+	line-height: 120px;
+	box-sizing: content-box;
+}

@@ -1,54 +1,82 @@
-'use strict';
-
-// 工具类
 (function (document, window) {
-    // DomObject 类
-    const DomObject = function (dom) {
-        this.dom = dom;
-    }
-    // 返回 DomObject 的 dom 对象
-    DomObject.prototype.get = function () {
-        return this.dom;
-    }
-    // 事件注册
-    DomObject.prototype.on = function (eventName, eventHandler) { // 事件注册
-        this.get().addEventListener(eventName, eventHandler, false);
-    };
-    // css 样式动态更改
-    DomObject.prototype.css = function (styleKey, styleValue) {
-        this.get().style[styleKey] = styleValue;
-    };
-
-    // $ 选择器
-    const $ = function (selector, context) {
-        return new DomObject((context || document).querySelector(selector));
-    };
+    'use strict';
 
     /**
-    * 定义实例一个 canvas 对象 的静态方法
-    * @param {String} canvasID 
-    * @param {Number} width
-    * @param {Number} height
-    */
-    $.canvas = function (canvasID, width, height) {
-        const newCanvas = {};
-        newCanvas.canvas = document.querySelector(canvasID);
-        if (newCanvas.canvas) {
-            // 设置 canvas 的宽度
-            newCanvas.width = newCanvas.canvas.width = width || window.innerWidth;
-            // 设置 canvas 的高度
-            newCanvas.height = newCanvas.canvas.height = height || window.innerHeight;
-            // 设置 canvas 的上下文
-            newCanvas.context = newCanvas.canvas.getContext('2d');
-        }
-        return newCanvas;
-    };
-
-    /**
-     * 加载图片静态方法
-     * @param {String} path
+     * 创建数组矩阵
+     * @param {Number} n 
+     * @param {Number} m 
+     * @param {Number} initial 
      */
-    $.preloadImage = function (path) {
+    Array.prototype.matrix = function (n, m, initial) {
+        const mat = [];
+        for (let i = 0; i < n; i++) {
+            mat[i] = [];
+            for (let j = 0; j < m; j++) {
+                mat[i][j] = initial;
+            }
+        }
+        return mat;
+    };
+
+    // 声明 俄罗斯方块对象
+    const tetris = {
+        blokImage: new Image(), // 方块图片对象
+        blockSize: 30, // 方块大小
+        mainRows: 23,  // 主界面纵向大小  
+        mainCols: 15,  // 主界面横向大小
+        mainImageData: null, // 存储主界面数据  
+        borderList: [],  // 用于存储界面网格的矩阵
+        curShap: { shap: [], shapsIndex: 0, shapIndex: 0, x: 0, y: 0, blockType: 0 }, // 用于存储当前图形数据
+        nextShap: { shap: [], shapsIndex: 0, shapIndex: 0, x: 0, y: 0, blockType: 0 }, // 用于存储下一个图形数据
+        // 所有图形矩阵样式
+        shaps: [
+            [
+                [[1, 1], [1, 1]]
+            ],
+            [
+                [[1, 1, 1, 1]],
+                [[1], [1], [1], [1]]
+            ],
+            [
+                [[0, 1, 0], [1, 1, 1]],
+                [[1, 0], [1, 1], [1, 0]],
+                [[1, 1, 1], [0, 1, 0]],
+                [[0, 1], [1, 1], [0, 1]]
+            ],
+            [
+                [[1, 1, 0], [0, 1, 1]],
+                [[0, 1], [1, 1], [1, 0]]
+            ],
+            [
+                [[0, 1, 1,], [1, 1, 0]],
+                [[1, 0], [1, 1], [0, 1]]
+            ]
+        ]
+    };
+    /**
+     * 初始化 tetris
+     * @param {String} mainId 
+     * @param {String} nextId
+     */
+    tetris.init = function (mainId, nextId) {
+        // 初始化主界面网格矩阵
+        tetris.borderList = tetris.borderList.matrix(tetris.mainCols, tetris.mainCols, 0);
+        this.preloadImage('assets/images/blocks.png').then(image => {
+            this.blokImage = image;
+            const game = new GameObj(mainId, nextId);
+            // 绑定键盘事件
+            document.addEventListener('keydown', event => {
+                const keyDirection = this.getKeyDirection(event)
+                game.moveShap(keyDirection, game.mainCanvas);
+            }, false);
+        });
+    };
+
+    /**
+     * 加载图片方法
+     * @param {String} path 
+     */
+    tetris.preloadImage = function (path) {
         return new Promise((resolve, reject) => {
             const image = new Image();
             image.onload = function () {
@@ -60,14 +88,15 @@
     };
 
     /**
-     * 根据键盘按下键获取指令
+     * 获取键盘指令
+     * @param {Object} event 
      */
-    $.getDirection = function (event) {
-        var keyCode = event.which || event.keyCode;
+    tetris.getKeyDirection = function (event) {
+        const keyCode = event.which || event.keyCode;
         switch (keyCode) {
             case 1:
             case 38:
-            case 269: //up
+            case 269:
                 return 'up';
                 break;
             case 2:
@@ -85,209 +114,185 @@
             case 272:
                 return 'right';
                 break;
-            case 339: //exit
-            case 240: //back
-                return 'back';
-                break;
         }
     };
 
-    window.$ = $;
+    // GameObj 类
+    class GameObj {
+        /**
+         * 构造函数
+         * @param {String} mainId 
+         * @param {String} nextId 
+         */
+        constructor(mainId, nextId) {
+            // 实例主游戏界面 canvas
+            this.mainCanvas = this.newCanvas(mainId, tetris.blockSize * tetris.mainCols, tetris.blockSize * tetris.mainRows);
+            // this.nextCanvas = this.newCanvas(nextId, 120, 120);
+            // 绘制界面网格
+            this.drawGrid(this.mainCanvas);
+            tetris.curShap = this.randomShap();
+            this.drawShap(this.mainCanvas, tetris.curShap);
+        }
 
-})(document, window);
-
-
-(function (document, window) {
-    /**
-    * 添加矩阵属性
-    * @param {Number} m
-    * @param {Number} n
-    * @param {*} initial 
-    */
-    Array.prototype.matrix = function (m, n, initial) {
-        let mat = [];
-        for (let i = 0; i < m; i++) {
-            mat[i] = [];
-            for (let j = 0; j < n; j++) {
-                mat[i][j] = initial;
+        /**
+         * 实例 Canvas 对象
+         * @param {String} canvasId 
+         * @param {Number} width 
+         * @param {Number} height 
+         */
+        newCanvas(canvasId, width, height) {
+            const canvas = document.querySelector(canvasId);
+            if (canvas) {
+                canvas.width = width || window.innerWidth;
+                canvas.height = height || window.innerHeight;
+                canvas.context = canvas.getContext('2d');
             }
+            return canvas;
         }
-        return mat;
-    };
 
-    // 绘制游戏界面网格
-    const _drawGameGrid = function (canvas) {
-        canvas.context.beginPath();
-        canvas.context.strokeStyle = 'rgba(0,0,0,0.6)';
-        canvas.context.lineWidth = 0.5;
-        // 绘制纵向线段
-        for (let i = 0; i < tetris.cols; i++) {
-            canvas.context.moveTo(i * tetris.borderSize, 0);
-            canvas.context.lineTo(i * tetris.borderSize, canvas.height);
-        }
-        // 绘制横向线段
-        for (let i = 0; i < tetris.rows; i++) {
-            canvas.context.moveTo(0, i * tetris.borderSize);
-            canvas.context.lineTo(canvas.width, i * tetris.borderSize);
-        }
-        canvas.context.stroke();
-        // 填充界面坐标
-        tetris.borderList = tetris.borderList.matrix(tetris.rows, tetris.cols, 0);
-        // 缓存 canvas 数据
-        tetris.gridImageData = canvas.context.getImageData(0, 0, canvas.width, canvas.height);
-    };
-
-    /**
-     * 绘制方块
-     * @param {*} canvas 
-     * @param {*} x 
-     * @param {*} y 
-     */
-    const _drawBlcoks = function (canvas, blockStyle, x, y) {
-        const block = {
-            size: 30,
-            originalSize: 32
-        }
-        const sprite = tetris.imageResource.get('blocks');  // 获取方块图片资源
-        canvas.context.beginPath();
-        canvas.context.drawImage(sprite, blockStyle * block.originalSize, 0, block.originalSize, block.originalSize,
-            x * block.size, y * block.size, block.size, block.size);
-    };
-
-    // 俄罗斯方框类
-    const tetris = {
-        canvas: null,
-        borderSize: 30, // 设置块的大小
-        rows: 20,   // 设置纵向大小  
-        cols: 13,   // 设置横向大小
-        tickTimer: null, // tick 时间控件
-        tickInterval: 1000, // tick 间隔时间
-        borderList: [], // 用于存储游戏界面中的坐标
-        gridImageData: null, // 用于存储canvas 界面缓存
-        imageResource: new Map(), // 图片资源
-        curShap: { x: 0, y: 0, shap: [], blockStyle: 0 },    // 当前图形的属性
-        nextShap: { x: 0, y: 0, shap: [], blockStyle: 0 },    // 下一个图形的属性
-        shaps: [
-            [[1, 1], [1, 1]],
-            [[1, 1, 1], [0, 1, 0]],
-            [[1, 1, 1, 1]],
-            [[0, 1, 1], [1, 1, 0]]
-        ]                               // 定义方块会组合的图形数组
-    };
-
-    /**
-     * 移动方块图形
-     * @param {*} event 
-     */
-    tetris.moveShap = function (event) {
-        const direction = $.getDirection(event);
-        if (direction) {
-            if (direction === 'left' && tetris.curShap.x > 0) {
-                tetris.curShap.x -= 1;
-            } else if (direction === 'right' && tetris.curShap.x < tetris.cols - tetris.curShap.shap[0].length) {
-                tetris.curShap.x += 1;
-            } else if (direction === 'down' && tetris.curShap.y < tetris.rows - tetris.curShap.shap.length) {
-                tetris.curShap.y += 1;
+        /**
+         * 绘制网格
+         * @param {Object} canvas 
+         */
+        drawGrid(canvas) {
+            canvas.context.beginPath();
+            // 绘制线段颜色
+            canvas.context.strokeStyle = 'rgba(0,0,0,0.6)';
+            // 绘制线段宽度
+            canvas.context.lineWidth = 0.5;
+            // 绘制界面纵向坐标点
+            for (let i = 0; i < tetris.mainCols; i++) {
+                canvas.context.moveTo(i * tetris.blockSize, 0);
+                canvas.context.lineTo(i * tetris.blockSize, canvas.height);
             }
-            tetris.refresh();
-            tetris.drawShap(tetris.curShap);
-            tetris.showNext();
+            // 绘制界面横向坐标点
+            for (let i = 0; i < tetris.mainRows; i++) {
+                canvas.context.moveTo(0, i * tetris.blockSize);
+                canvas.context.lineTo(canvas.width, i * tetris.blockSize);
+            }
+            // 绘制网格
+            canvas.context.stroke();
+            // 存储主界面数据
+            tetris.mainImageData = canvas.context.getImageData(0, 0, canvas.width, canvas.height);
         }
-    };
 
-    /**
-     * 生成随机图形
-     */
-    tetris.randomShap = function () {
-        // 随机图形
-        const shap = this.shaps[Math.floor(Math.random() * this.shaps.length)];
-        // 随机生成图形 x 坐标
-        const x = Math.floor(Math.random() * (this.cols - shap[0].length));
-        // 随机图形样式 
-        const blockStyle = Math.floor((Math.random() * 7));
-        return { x: x, y: 0, shap: shap, blockStyle: blockStyle };
-    };
-
-    /**
-     * 绘制图形
-     * @param {*} shap 
-     */
-    tetris.drawShap = function (theShap) {
-        for (let i = 0; i < theShap.shap.length; i++) {
-            for (let j = 0; j < theShap.shap[i].length; j++) {
-                if (theShap.shap[i][j]) {
-                    _drawBlcoks(this.canvas, theShap.blockStyle, theShap.x + j, theShap.y + i);
+        /**
+         * 绘制图形
+         * @param {Object} canvas 
+         * @param {Object} shapObj 
+         */
+        drawShap(canvas, shapObj) {
+            for (let i = 0; i < shapObj.shap.length; i++) {
+                for (let j = 0; j < shapObj.shap[i].length; j++) {
+                    if (shapObj.shap[i][j]) {
+                        this.drawBlock(canvas, shapObj.x + j, shapObj.y + i, shapObj.blockType);
+                    }
                 }
             }
         }
-    };
 
-    /**
-     * 刷新游戏界面
-     */
-    tetris.refresh = function () {
-        this.canvas.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.canvas.context.putImageData(this.gridImageData, 0, 0);
-    };
+        /**
+         * 绘制方块
+         * @param {Canvas} canvas 
+         * @param {Number} x 
+         * @param {Number} y 
+         * @param {Number} blockType
+         */
+        drawBlock(canvas, x = 0, y = 0, blockType = 0) {
+            // 方块图片大小
+            const originalSize = 32;
+            // 绘制方块
+            canvas.context.drawImage(tetris.blokImage, blockType * originalSize, 0, originalSize, originalSize,
+                x * tetris.blockSize, y * tetris.blockSize, tetris.blockSize, tetris.blockSize);
+        }
 
-    /**
-     * 显示下一个方块图形
-     */
-    tetris.showNext = function () {
-        if (this.curShap.y >= this.rows - this.curShap.shap.length) {
-            // 清除计时器
-            window.clearInterval(this.tickTimer);
-            // console.log(this.canvas.context.getImageData(0, 0, this.canvas.width, this.canvas.height));
-            // this.gridImageData = this.canvas.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
-            this.curShap = this.nextShap;
-            // this.startGame();
+        /**
+         * 移动图形
+         * @param {String} keyDirection 
+         * @param {Canvas} canvas 
+         */
+        moveShap(keyDirection, canvas) {
+            // 图形最大移动 X 坐标
+            let maxX = tetris.mainCols - tetris.curShap.shap[0].length;
+            // 图形最大移动 Y 坐标
+            let maxY = tetris.mainRows - tetris.curShap.shap.length;
+
+            // 图形转换
+            if (keyDirection === 'up') {
+                const curShap = tetris.curShap;
+                const shapLength = tetris.shaps[curShap.shapsIndex].length - 1;
+                tetris.curShap.shapIndex = curShap.shapIndex + 1 > shapLength ? 0 : curShap.shapIndex + 1;
+                // 获取新的图形
+                tetris.curShap.shap = tetris.shaps[curShap.shapsIndex][tetris.curShap.shapIndex];
+
+                // 更改图形转换后最大 X 、Y 坐标
+                maxX = tetris.mainCols - tetris.curShap.shap[0].length;
+                maxY = tetris.mainRows - tetris.curShap.shap.length;
+
+                // 图形转换时更改 X 坐标
+                if (tetris.curShap.x > maxX) {
+                    tetris.curShap.x -= (tetris.curShap.x - maxX);
+                }
+
+                // console.log(tetris.curShap.shap);
+                // console.log(tetris.curShap.y, maxY);
+
+                // 图形转换时更改 Y 坐标
+                // if (tetris.curShap.y >= maxY) {
+                //     console.log(tetris.curShap.y, maxY);
+                //     // console.log(tetris.curShap.y);
+                //     // console.log(maxY);
+                //     // tetris.curShap.y -= (tetris.curShap.y - maxY - 1);
+                // }
+            }
+
+            // 图形左移动
+            if (keyDirection === 'left' && tetris.curShap.x > 0) {
+                tetris.curShap.x -= 1;
+            }
+
+            // 图形右移动
+            if (keyDirection === 'right' && tetris.curShap.x < maxX) {
+                tetris.curShap.x += 1;
+            }
+
+            // 图形下移动
+            if (keyDirection === 'down' && tetris.curShap.y < maxY) {
+                tetris.curShap.y += 1;
+            }
+
+            this.refresh(canvas, tetris.mainImageData);
+            this.drawShap(canvas, tetris.curShap);
+        }
+
+        // 生成随机图形
+        randomShap() {
+            // 生成随机图形
+            const shapsIndex = Math.floor(Math.random() * tetris.shaps.length);
+            const shapIndex = Math.floor(Math.random() * tetris.shaps[shapsIndex].length);
+            const shap = tetris.shaps[shapsIndex][shapIndex];
+            // 生成随机 x 坐标
+            const x = Math.floor(Math.random() * (tetris.mainCols - shap[0].length));
+            // 生成随机方块样式
+            const blockType = Math.floor(Math.random() * 7);
+            return { shap: shap, shapsIndex: shapsIndex, shapIndex: shapIndex, x: x, y: 0, blockType: blockType };
+        }
+
+        /**
+         * 刷新界面
+         * @param {Canvas} canvas 
+         * @param {Object} canvas 
+         */
+        refresh(canvas, imageData) {
+            canvas.context.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.context.putImageData(imageData, 0, 0);
         }
     };
 
-    /**
-     * 图形定时下落
-     */
-    tetris.tick = function () {
-        this.tickTimer = window.setInterval(() => {
-            this.curShap.y += 1;
-            tetris.refresh();
-            this.drawShap(this.curShap);
-            this.showNext();
-        }, this.tickInterval);
-    };
-
-    /**
-     * 开始游戏
-     */
-    tetris.startGame = function () {
-        this.nextShap = this.randomShap();
-        this.drawShap(this.curShap);
-        this.tick();
-    };
-
-    /**
-     * 初始化游戏界面
-     * @param {*} canvasID 
-     */
-    tetris.init = async function (canvasID) {
-        this.imageResource.set('blocks', await $.preloadImage('assets/images/blocks.png'));
-        this.canvas = $.canvas(canvasID, this.cols * this.borderSize, this.rows * this.borderSize);
-        if (this.canvas.context) {
-            _drawGameGrid(this.canvas);
-            this.curShap = this.randomShap();
-            document.addEventListener('keydown', this.moveShap, false);
-            this.startGame();
-        }
-    };
-    // 将俄罗斯类暴露给全局对象 window
+    // 将 tetris 对象暴露给全局对象
     window.tetris = tetris;
 })(document, window);
 
-
 window.onload = function () {
-    $('#btn-start').on('click', function () {
-        $('.start-container').css('display', 'none');
-        $('.game-container').css('display', 'block');
-        tetris.init('#c-game-main');
-    });
-}
+    tetris.init('#c-game-main', '#c-next-block');
+};

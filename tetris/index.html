@@ -7,18 +7,23 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Tetris</title>
     <link rel="shortcut icon" href="./assets/images/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="./assets/style/style.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 
 <body>
-    <div class="start-container">
-        <p>
-            <button class="btn btn-start" id="btn-start">开始游戏</button>
-            <button class="btn btn-set">设置</button>
-        </p>
-    </div>
     <div class="game-container">
-        <div class="timer-panel">
+        <div class="game-main-panel">
+            <canvas id="c-game-main"></canvas>
+        </div>
+        <div class="next-panel">
+            <div class="panel-header">
+                下一方块
+            </div>
+            <div class="panel-body">
+                <canvas id="c-next-block"></canvas>
+            </div>
+        </div>
+        <!-- <div class="timer-panel">
             <div class="panel-header">
                 使用时间
             </div>
@@ -42,17 +47,8 @@
                 Level 1
             </div>
         </div>
-        <div class="game-main-panel">
-            <canvas id="c-game-main"></canvas>
-        </div>
-        <div class="next-panel">
-            <div class="panel-header">
-                下一方块
-            </div>
-            <div class="panel-body">
-                Z
-            </div>
-        </div>
+       
+       
         <div class="set-panel">
             <div class="panel-body">
                 <button>暂停</button>
@@ -73,7 +69,7 @@
             <div class="panel-body">
                 1330
             </div>
-        </div>
+        </div> -->
     </div>
     <script src="./assets/js/app.js"></script>
 </body>
