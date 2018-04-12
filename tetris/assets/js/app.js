@@ -60,7 +60,7 @@
      */
     tetris.init = function (mainId, nextId) {
         // 初始化主界面网格矩阵
-        tetris.borderList = tetris.borderList.matrix(tetris.mainCols, tetris.mainCols, 0);
+        tetris.borderList = tetris.borderList.matrix(tetris.mainRows, tetris.mainCols, 0);
         this.preloadImage('assets/images/blocks.png').then(image => {
             this.blokImage = image;
             const game = new GameObj(mainId, nextId);
@@ -131,6 +131,7 @@
             // 绘制界面网格
             this.drawGrid(this.mainCanvas);
             tetris.curShap = this.randomShap();
+            tetris.nextShap = this.randomShap();
             this.drawShap(this.mainCanvas, tetris.curShap);
         }
 
@@ -234,16 +235,10 @@
                     tetris.curShap.x -= (tetris.curShap.x - maxX);
                 }
 
-                // console.log(tetris.curShap.shap);
-                // console.log(tetris.curShap.y, maxY);
-
                 // 图形转换时更改 Y 坐标
-                // if (tetris.curShap.y >= maxY) {
-                //     console.log(tetris.curShap.y, maxY);
-                //     // console.log(tetris.curShap.y);
-                //     // console.log(maxY);
-                //     // tetris.curShap.y -= (tetris.curShap.y - maxY - 1);
-                // }
+                if (tetris.curShap.y >= maxY) {
+                    tetris.curShap.y -= (tetris.curShap.y - maxY);
+                }
             }
 
             // 图形左移动
@@ -260,9 +255,15 @@
             if (keyDirection === 'down' && tetris.curShap.y < maxY) {
                 tetris.curShap.y += 1;
             }
-
             this.refresh(canvas, tetris.mainImageData);
             this.drawShap(canvas, tetris.curShap);
+
+            if (tetris.curShap.y === maxY) {
+                this.addShapeToBordList();
+                tetris.curShap = tetris.nextShap;
+                tetris.nextShap = this.randomShap();
+                this.drawShap(this.mainCanvas, tetris.curShap);
+            }
         }
 
         // 生成随机图形
@@ -286,6 +287,35 @@
         refresh(canvas, imageData) {
             canvas.context.clearRect(0, 0, canvas.width, canvas.height);
             canvas.context.putImageData(imageData, 0, 0);
+            this.drawShapToBorderList(canvas, tetris.curShap.blockType);
+        }
+
+        // 将已落地的方块坐标存储到 网格矩阵中
+        addShapeToBordList() {
+            for (let y = 0; y < tetris.curShap.shap.length; y++) {
+                for (let x = 0; x < tetris.curShap.shap[y].length; x++) {
+                    if (tetris.curShap.shap[y][x]) {
+                        const borderX = tetris.curShap.x + x;
+                        const borderY = tetris.curShap.y + y;
+                        tetris.borderList[borderY][borderX] = 1;
+                    }
+                }
+            }
+        }
+
+        /**
+         * 绘制已落地的方块
+         * @param {Canvas} canvas 
+         * @param {Number} blockType 
+         */
+        drawShapToBorderList(canvas, blockType = 0) {
+            for (let y = 0; y < tetris.borderList.length; y++) {
+                for (let x = 0; x < tetris.borderList[y].length; x++) {
+                    if (tetris.borderList[y][x]) {
+                        this.drawBlock(canvas, x, y, blockType);
+                    }
+                }
+            }
         }
     };
 
